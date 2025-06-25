@@ -1,4 +1,11 @@
 from models.task import Task
+from fastapi import FastAPI
+from routes import tasks
+
+app = FastAPI()
+app.include_router(tasks.router)
+
+
 
 tarefa = Task(
     title="Estudar Python",
