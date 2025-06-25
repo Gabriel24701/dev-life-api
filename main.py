@@ -1,9 +1,10 @@
-from models.task import Task
 from fastapi import FastAPI
 from routes import tasks
+from models.task import Task
 
 app = FastAPI()
 app.include_router(tasks.router)
+
 
 
 
