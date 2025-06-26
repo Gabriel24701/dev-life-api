@@ -1,10 +1,11 @@
 from fastapi import FastAPI
-from routes import tasks
+from routes import tasks, courses
 from models.task import Task
 from models.course import Course
 
 app = FastAPI()
 app.include_router(tasks.router)
+app.include_router(courses.router)
 
 
 
