@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from routes import tasks, courses
 from models.task import Task
 from models.course import Course
+from models.habit import Habit
 
 app = FastAPI()
 app.include_router(tasks.router)
@@ -33,10 +34,17 @@ course.update_course(100)
 print(course)
 print(course.to_dict())
 
+print()
+
+habit = Habit("Beber agua", "saude", "diariamente", 5,"2025/06/26")
+print(habit)
+print(habit.to_dict())
+
+habit.mark_today()
+print(habit.to_dict())
+
 def main():
     
-    
-    # tarefa.concluir_tarefa()
     pass
 
 if __name__ == "__main__":
