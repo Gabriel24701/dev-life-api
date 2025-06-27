@@ -9,19 +9,12 @@ class Task:
     def __str__(self):
         status = '✅' if self._status else '❎'
         return (
-            f"Tarefa: {self._title}\n"
-            f"Categoria: {self._category}\n"
-            f"Descrição: {self._description}\n"
+            f"Task: {self._title}\n"
+            f"Category: {self._category}\n"
+            f"Description: {self._description}\n"
             f"Status: {status}\n"
-            f"Criada em: {self._created_at}"
+            f"Created at: {self._created_at}"
         )
-    
-    def concluir_tarefa(self):
-        self._status = True
-
-    @property
-    def altera_status_tarefa(self):
-        return '✅' if self._status else '❎'
     
     def to_dict(self):
         return {
@@ -31,3 +24,6 @@ class Task:
             "status": self._status,
             "created_at": self._created_at
         }
+    
+    def complete_task(self):
+        self._status = True

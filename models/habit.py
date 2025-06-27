@@ -2,17 +2,18 @@ from datetime import date
 
 class Habit:
     def __init__(self, name, category, goal_type, target, created_at):
-        self._name = name                    
+        self._name = name
         self._category = category
-        self._goal_type = goal_type          
-        self._target = target                
-        self._created_at = created_at        
-        self._log = []                       
-  
+        self._goal_type = goal_type
+        self._target = target
+        self._created_at = created_at
+        self._log = []
 
     def __str__(self):
-        return f"{self._name} ({self._category}) - {self._goal_type}, alvo: {self._target}x | Criado em: {self._created_at}"
-
+        return (
+            f"{self._name} ({self._category}) - {self._goal_type}, "
+            f"target: {self._target}x | Created at: {self._created_at}"
+        )
 
     def to_dict(self):
         return {
@@ -25,7 +26,6 @@ class Habit:
             "streak": self.get_streak()
         }
 
-
     def mark_today(self):
         today = date.today().isoformat()
         if today not in self._log:
@@ -33,7 +33,7 @@ class Habit:
 
     def get_total_checkins(self):
         return len(self._log)
-    
+
     def get_streak(self):
         today = date.today()
         streak = 0
@@ -43,7 +43,7 @@ class Habit:
         for i, day in enumerate(days):
             if i == 0 and (today - day).days > 1:
                 break
-            elif i > 0 and (days[i-1] - day).days != 1:
+            elif i > 0 and (days[i - 1] - day).days != 1:
                 break
             streak += 1
 
