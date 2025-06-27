@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routes import tasks, courses
+from routes import tasks, courses, habits
 from models.task import Task
 from models.course import Course
 from models.habit import Habit
@@ -7,6 +7,7 @@ from models.habit import Habit
 app = FastAPI()
 app.include_router(tasks.router)
 app.include_router(courses.router)
+app.include_router(habits.router)
 
 
 
@@ -39,6 +40,7 @@ print()
 habit = Habit("Beber agua", "saude", "diariamente", 5,"2025/06/26")
 print(habit)
 print(habit.to_dict())
+
 
 habit.mark_today()
 print(habit.to_dict())

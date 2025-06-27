@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date
 
 class Habit:
     def __init__(self, name, category, goal_type, target, created_at):
@@ -21,7 +21,8 @@ class Habit:
             "goal_type": self._goal_type,
             "target": self._target,
             "created_at": self._created_at,
-            "log": self._log
+            "log": self._log,
+            "streak": self.get_streak()
         }
 
 
@@ -34,9 +35,9 @@ class Habit:
         return len(self._log)
     
     def get_streak(self):
-        today = date.today().date()
+        today = date.today()
         streak = 0
-        days = [date.fromisoformat(d).date() for d in self._log]
+        days = [date.fromisoformat(d) for d in self._log]
         days.sort(reverse=True)
 
         for i, day in enumerate(days):
