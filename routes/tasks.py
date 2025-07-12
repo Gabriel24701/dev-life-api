@@ -32,7 +32,7 @@ def get_tasks():
 
 @router.post("/tasks")
 def create_task(task: TaskCreate):
-    conn = sqlite3.connect("devlife.db")
+    conn = sqlite3.connect("database/devlife.db")
     cursor = conn.cursor()
 
     cursor.execute("""
@@ -66,3 +66,19 @@ def conclude_task(task_id: int):
     conn.close()
 
     return {"message": "Tarefa marcada como concluída com sucesso!"}
+
+@router.delete("/tasks/{task_id}")
+def delete_task(task_id: int):
+    conn = sqlite3.connect("database/devlife.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
+    task = cursor.fetchone()
+
+    if task is None:
+        conn.close()
+        return {"error": "Tarefa não encontrada."}
+    
+    cursor.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
+    conn.commit()
+    conn.close()
+    return {"message": "Tarefa deletada com sucesso!"}
