@@ -8,16 +8,38 @@ tasks = []
 
 @router.get("/tasks")
 def get_tasks():
-    return [task.to_dict() for task in tasks]
+    conn = sqlite3.connect("C:/projetos/dev-life-api/database/devlife.db")
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM tasks")
+    rows = cursor.fetchall()
+
+    tasks = []
+    for row in rows:
+        task = {
+            "id": row[0],
+            "title": row[1],
+            "category": row[2],
+            "description": row[3],
+            "status": row[4],
+            "created_at": row[5]
+        }
+        tasks.append(task)
+
+    conn.close()
+    return tasks
+
 
 @router.post("/tasks")
 def create_task(task: TaskCreate):
     conn = sqlite3.connect("devlife.db")
     cursor = conn.cursor()
+
     cursor.execute("""
         INSERT INTO tasks (title, category, description, created_at)
         VALUES (?, ?, ?, ?)
     """, (task.title, task.category, task.description, task.created_at))
+
     conn.commit()
     conn.close()
     return {"message": "Tarefa salva com sucesso!"}
