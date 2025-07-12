@@ -45,8 +45,24 @@ def create_task(task: TaskCreate):
     return {"message": "Tarefa salva com sucesso!"}
 
 @router.patch("/tasks/{task_id}")
-def update_task_status(task_id: int):
-    if 0 <= task_id < len(tasks):
-        tasks[task_id].concluir_tarefa()
-        return {"message": "Tarefa marcada como completa."}
-    return {"error": "Tarefa não encontrada."}
+def conclude_task(task_id: int):
+    conn = sqlite3.connect("database/devlife.db")
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
+    task = cursor.fetchone()
+
+    if task is None:
+        conn.close()
+        return {"error": "Tarefa não encontrada."}
+
+    cursor.execute("""
+        UPDATE tasks
+        SET status = 1
+        WHERE id = ?
+    """, (task_id,))
+
+    conn.commit()
+    conn.close()
+
+    return {"message": "Tarefa marcada como concluída com sucesso!"}
