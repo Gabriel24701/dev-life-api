@@ -1,11 +1,9 @@
 from fastapi import APIRouter
-from models.habit import Habit
+from models.habit import Habit, HabitCreate
 import sqlite3
 import json
 
 router = APIRouter()
-
-
 
 @router.get("/habits")
 def get_habits():
@@ -33,10 +31,17 @@ def get_habits():
 
 
 @router.post("/habits")
-def create_habit(name: str, category: str, goal_type: str, target: int, created_at: str):
-    new_habit = Habit(name, category, goal_type, target, created_at)
-    habits.append(new_habit)
+def create_habit(habit: HabitCreate):
+    conn = sqlite3.connect("database/devlife.db")
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO habits (name, category, goal_type, target, created_at)
+        VALUES (?, ?, ?, ?, ?)
+    """, (habit.name, habit.category, habit.goal_type, habit.target, habit.created_at))
+    conn.commit()
+    conn.close()
     return {"message": "Hábito criado com sucesso!"}
+
 
 @router.patch("/habits/{habit_id}")
 def update_habit_status(habit_id: int):
