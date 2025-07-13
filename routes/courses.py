@@ -9,7 +9,23 @@ courses = []
 
 @router.get("/courses")
 def get_courses():
-    return [course.to_dict() for course in courses]
+    conn = sqlite3.connect("database/devlife.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, title, platform, progress, start_date, completed FROM courses")
+    rows = cursor.fetchall()
+    courses = []
+    for row in rows:
+        course = {
+            "id": row[0],
+            "title": row[1],
+            "platform": row[2],
+            "progress": row[3],
+            "start_date": row[4],
+            "completed": row[5] == 1
+        }
+        courses.append(course)
+    conn.close()
+    return courses
 
 @router.post("/courses")
 def create_course(course: CourseCreate):
