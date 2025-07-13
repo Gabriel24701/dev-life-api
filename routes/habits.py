@@ -1,12 +1,36 @@
 from fastapi import APIRouter
 from models.habit import Habit
+import sqlite3
+import json
 
 router = APIRouter()
-habits = []
+
+
 
 @router.get("/habits")
 def get_habits():
-    return [habit.to_dict() for habit in habits]
+    conn = sqlite3.connect("database/devlife.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM habits")
+    rows = cursor.fetchall()
+    habits = []
+    
+    for row in rows:
+        completed_dates = json.loads(row[6]) if row[6] else []  # ← aqui o pulo do gato
+        habit = {
+            "id": row[0],
+            "name": row[1],
+            "category": row[2],
+            "goal_type": row[3],
+            "target": row[4],
+            "created_at": row[5],
+            "completed_dates": completed_dates
+        }
+        habits.append(habit)
+
+    conn.close()
+    return habits
+
 
 @router.post("/habits")
 def create_habit(name: str, category: str, goal_type: str, target: int, created_at: str):
