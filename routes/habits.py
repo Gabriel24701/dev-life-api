@@ -1,7 +1,8 @@
 from fastapi import APIRouter
 from models.habit import Habit, HabitCreate
-import sqlite3
 import json
+import datetime
+import sqlite3
 
 router = APIRouter()
 
@@ -42,10 +43,25 @@ def create_habit(habit: HabitCreate):
     conn.close()
     return {"message": "Hábito criado com sucesso!"}
 
+import datetime
 
 @router.patch("/habits/{habit_id}")
 def update_habit_status(habit_id: int):
-    if 0 <= habit_id < len(habits):
-        habits[habit_id].mark_today()
-        return {"message": "Hábito marcado como concluído."}
-    return {"error": "Hábito não encontrado."}
+    conn = sqlite3.connect("database/devlife.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT completed_dates FROM habits WHERE id = ?", (habit_id,))
+    row = cursor.fetchone()
+    if row is None:
+        conn.close()
+        return {"error": "Hábito não encontrado."}
+    completed_dates = json.loads(row[0]) if row[0] else []
+    today = datetime.date.today().isoformat()
+    if today not in completed_dates:
+        completed_dates.append(today)
+    cursor.execute(
+        "UPDATE habits SET completed_dates = ? WHERE id = ?",
+        (json.dumps(completed_dates), habit_id)
+    )
+    conn.commit()
+    conn.close()
+    return {"message": "Hábito marcado como concluído."}
