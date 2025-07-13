@@ -33,3 +33,6 @@ class CourseCreate(BaseModel):
     platform: str
     progress: int
     start_date: str
+
+class CourseUpdate(BaseModel):
+    progress: int

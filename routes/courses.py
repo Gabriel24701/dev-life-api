@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from models.course import Course
-from models.course import CourseCreate
+from models.course import CourseCreate, CourseUpdate
 import sqlite3
 
 router = APIRouter()
@@ -42,8 +42,20 @@ def create_course(course: CourseCreate):
 
 
 @router.patch("/courses/{course_id}")
-def update_course_progress(course_id: int, progress: int):
-    if 0 <= course_id < len(courses):
-        courses[course_id].update_course(progress)
-        return {"message": "Progresso do curso atualizado com sucesso."}
-    return {"error": "Curso não encontrado."}
+def update_course_progress(course_id: int, course_data: CourseUpdate):
+    completed = 1 if course_data.progress >= 100 else 0
+    conn = sqlite3.connect("database/devlife.db")
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM courses WHERE id = ?", (course_id,))
+    course = cursor.fetchone()
+    if course is None:
+        conn.close()
+        return {"error": "Curso não encontrado."}
+    cursor.execute("""
+        UPDATE courses
+        SET progress = ?, completed = ?
+        WHERE id = ?
+    """, (course_data.progress, completed, course_id))
+    conn.commit()
+    conn.close()
+    return {"message": "Progresso do curso atualizado com sucesso."}
