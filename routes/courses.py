@@ -63,3 +63,24 @@ def update_course_progress(course_id: int, course_data: CourseUpdate):
             return {"message": "Progresso do curso atualizado com sucesso."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/courses/{course_id}")
+def delete_course(course_id: int):
+    """Deleta um curso com base no ID fornecido.
+    """
+    try:
+        with get_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM courses WHERE id = ?", (course_id,))
+            course = cursor.fetchone()
+
+            if course is None:
+                conn.close()
+                if course is None:
+                    raise HTTPException(status_code=404, detail="Curso não encontrado.")
+
+            cursor.execute("DELETE FROM courses WHERE id = ?", (course_id,))
+            conn.commit()
+            return {"message": "Curso deletado com sucesso!"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

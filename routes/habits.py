@@ -72,4 +72,24 @@ def update_habit_status(habit_id: int):
             return {"message": "Hábito marcado como concluído."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
+@router.delete("/habits/{habit_id}")
+def delete_habit(habit_id: int):
+    """Deleta um hábito com base no ID fornecido.
+    """
+    try:
+        with get_db() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM habits WHERE id = ?", (habit_id,))
+            habit = cursor.fetchone()
+
+            if habit is None:
+                conn.close()
+                if habit is None:
+                    raise HTTPException(status_code=404, detail="Hábito não encontrado.")
+
+            cursor.execute("DELETE FROM habits WHERE id = ?", (habit_id,))
+            conn.commit()
+            return {"message": "Hábito deletado com sucesso!"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
