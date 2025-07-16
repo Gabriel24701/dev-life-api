@@ -2,6 +2,11 @@
 
 Uma API de produtividade pessoal desenvolvida em Python com FastAPI, com foco em rastreamento de tarefas, cursos e hábitos.
 
+> 💡 **Por que escolhi esse projeto?**  
+> Ao entrar de vez no mundo da tecnologia, percebi que organização é essencial para manter a constância nos estudos e no desenvolvimento pessoal.  
+> Eu mesmo precisava de uma forma prática de acompanhar minhas tarefas, cursos e hábitos diários então resolvi criar essa API para resolver um **problema real da minha rotina**.  
+> Uma vida organizada é, sem dúvidas, muito mais produtiva. E foi assim que surgiu a ideia do **Dev Life API**.
+
 ---
 
 ## 📌 Funcionalidades
@@ -13,6 +18,9 @@ Uma API de produtividade pessoal desenvolvida em Python com FastAPI, com foco em
 ---
 
 ## 🛠 Tecnologias utilizadas
+
+-
+
 
 - Python 3.11+
 - FastAPI
