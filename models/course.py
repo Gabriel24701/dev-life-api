@@ -1,5 +1,3 @@
-from pydantic import BaseModel
-
 class Course:
     def __init__(self, title, platform, progress, start_date):
         self._title = title
@@ -25,14 +23,3 @@ class Course:
         self._progress = min(value, 100)
         if self._progress == 100:
             self._completed = True
-
-            from pydantic import BaseModel
-
-class CourseCreate(BaseModel):
-    title: str
-    platform: str
-    progress: int
-    start_date: str
-
-class CourseUpdate(BaseModel):
-    progress: int

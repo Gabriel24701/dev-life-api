@@ -1,5 +1,3 @@
-from pydantic import BaseModel
-
 class Task:
     def __init__(self, title, category, description, created_at):
         self._title = title
@@ -30,9 +28,3 @@ class Task:
     def complete_task(self):
         self._status = True
 
-
-class TaskCreate(BaseModel):
-    title: str
-    category: str
-    description: str
-    created_at: str

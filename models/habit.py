@@ -1,5 +1,4 @@
 from datetime import date
-from pydantic import BaseModel
 
 class Habit:
     def __init__(self, name, category, goal_type, target, created_at):
@@ -49,10 +48,4 @@ class Habit:
             streak += 1
 
         return streak
-
-class HabitCreate(BaseModel):
-    name: str
-    category: str
-    goal_type: str
-    target: int
-    created_at: str
+    
