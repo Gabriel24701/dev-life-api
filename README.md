@@ -1,4 +1,3 @@
-
 # 🚀 Dev Life API
 
 Uma API de produtividade pessoal desenvolvida em Python com FastAPI, com foco em rastreamento de tarefas, cursos e hábitos.
@@ -7,7 +6,7 @@ Uma API de produtividade pessoal desenvolvida em Python com FastAPI, com foco em
 
 ## 📌 Funcionalidades
 
-- ✅ Criar, listar e concluir tarefas (`Task`)
+- ✅ Criar, listar, concluir e deletar tarefas (`Task`)
 - 📚 Acompanhar progresso de cursos (`Course`)
 - 🔁 Rastrear hábitos diários com streak (`Habit`)
 
@@ -18,6 +17,7 @@ Uma API de produtividade pessoal desenvolvida em Python com FastAPI, com foco em
 - Python 3.11+
 - FastAPI
 - Uvicorn
+- SQLite3
 
 ---
 
@@ -26,10 +26,14 @@ Uma API de produtividade pessoal desenvolvida em Python com FastAPI, com foco em
 ```
 dev-life-api/
 │
+├── database/
+│   ├── database.py         # Função utilitária para conexão SQLite
+│   └── init_db.py          # Script para criação das tabelas
 ├── models/
 │   ├── task.py
 │   ├── course.py
-│   └── habit.py
+│   ├── habit.py
+│   └── schemas.py          # Modelos Pydantic (validação/serialização)
 ├── routes/
 │   ├── tasks.py
 │   ├── courses.py
@@ -44,35 +48,41 @@ dev-life-api/
 
 ## ▶️ Como rodar localmente
 
-1. Clone o repositório:
+1. **Clone o repositório:**
 
 ```bash
 git clone https://github.com/Gabriel24701/dev-life-api.git
 cd dev-life-api
 ```
 
-2. Crie e ative um ambiente virtual:
+2. **Crie e ative um ambiente virtual:**
 
 ```bash
 python -m venv venv
 venv\Scripts\activate  # No Windows
 ```
 
-3. Instale as dependências:
+3. **Instale as dependências:**
 
 ```bash
-pip install fastapi uvicorn
+pip install -r requirements.txt
 ```
 
-4. Rode o servidor local:
+4. **Inicialize o banco de dados (criação das tabelas):**
+
+```bash
+python database/init_db.py
+```
+
+5. **Rode o servidor local:**
 
 ```bash
 uvicorn main:app --reload
 ```
 
-5. Acesse a documentação interativa:
+6. **Acesse a documentação interativa:**
 
-- [http://localhost:8000/docs]
+- [http://localhost:8000/docs](http://localhost:8000/docs)
 
 ---
 
@@ -82,23 +92,19 @@ uvicorn main:app --reload
 - `GET /tasks`
 - `POST /tasks`
 - `PATCH /tasks/{task_id}`
+- `DELETE /tasks/{task_id}`
 
 ### 📘 Cursos
 - `GET /courses`
 - `POST /courses`
 - `PATCH /courses/{course_id}`
+- `DELETE /courses/{course_id}`
 
 ### 🔁 Hábitos
 - `GET /habits`
 - `POST /habits`
 - `PATCH /habits/{habit_id}`
-
----
-
-## 📈 Próximos passos
-
-- [ ] Implementar persistência com SQLite
-- [ ] Criar painel visual com frontend (futuro)
+- `DELETE /habits/{habit_id}`
 
 ---
 
@@ -106,4 +112,4 @@ uvicorn main:app --reload
 
 **Gabriel Bebé Silva**  
 Estudante de Análise e Desenvolvimento de Sistemas — FIAP  
-[LinkedIn](www.linkedin.com/in/gabriel-bebé-298815238)
+[LinkedIn](https://www.linkedin.com/in/gabriel-bebé-298815238)
