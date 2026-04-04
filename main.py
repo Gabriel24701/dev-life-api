@@ -3,11 +3,20 @@ from routes import tasks, courses, habits
 from models.task import Task
 from models.course import Course
 from models.habit import Habit
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 app.include_router(tasks.router)
 app.include_router(courses.router)
 app.include_router(habits.router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # Em produção, trocar pela URL  do Front-end
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def test_models():
     print("Iniciando a aplicação...\n")
