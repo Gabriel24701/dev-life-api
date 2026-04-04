@@ -1,14 +1,14 @@
 # 1. Imagem base do Python
 FROM python:3.11-slim
 
-# 2. Impedir que o Python grave arquivos .pyc e forçar o log direto no terminal (bom para observabilidade)
+# 2. Impedir que o Python grave arquivos .pyc e forçar o log direto no terminal
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
 # 3. Definir o diretório de trabalho dentro do container
 WORKDIR /app
 
-# 4. Copiar os requisitos primeiro (aproveita o cache de camadas do Docker)
+# 4. Copiar os requisitos primeiro
 COPY requirements.txt .
 
 # 5. Instalar dependências
