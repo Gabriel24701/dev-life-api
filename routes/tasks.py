@@ -2,10 +2,15 @@ from fastapi import APIRouter, HTTPException
 from models.schemas import TaskCreate
 from typing import List
 from database.database import get_db
+from models.schemas import TaskCreate, TaskResponse
 
 router = APIRouter()
 
-@router.get("/tasks", response_model=List[TaskCreate])
+
+
+from models.schemas import TaskCreate, TaskResponse #
+
+@router.get("/tasks", response_model=List[TaskResponse]) 
 def get_tasks():
     """
     Retorna a lista de todas as tarefas cadastradas.
@@ -13,14 +18,16 @@ def get_tasks():
     try:
         with get_db() as conn:
             cursor = conn.cursor()
-            cursor.execute("SELECT title, category, description, created_at FROM tasks")
+            cursor.execute("SELECT id, title, category, description, created_at, status FROM tasks") 
             rows = cursor.fetchall()
             return [
-                TaskCreate(
-                    title=row[0],
-                    category=row[1],
-                    description=row[2],
-                    created_at=row[3]
+                TaskResponse(
+                    id=row[0],
+                    title=row[1],
+                    category=row[2],
+                    description=row[3],
+                    created_at=row[4],
+                    status=row[5]
                 ) for row in rows
             ]
     except Exception as e:

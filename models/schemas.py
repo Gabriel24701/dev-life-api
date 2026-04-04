@@ -22,3 +22,11 @@ class CourseCreate(BaseModel):
 
 class CourseUpdate(BaseModel):
     progress: int = Field(..., ge=0, le=100, description="Progresso do curso de 0 a 100", example=80)
+
+class TaskResponse(TaskCreate):
+    id: int
+    status: int
+
+class CourseResponse(CourseCreate):
+    id: int
+

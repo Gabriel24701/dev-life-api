@@ -10,6 +10,7 @@ interface Task {
   category: string;
   description: string;
   created_at: string;
+  status: number;
 }
 
 interface Course {
@@ -69,21 +70,30 @@ export default function Dashboard() {
         <section className="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-lg">
           <h2 className="text-2xl font-semibold mb-4 text-white border-b border-gray-700 pb-2">📝 Tarefas</h2>
           <div className="space-y-4">
-            {tasks.map((task: Task, index: number) => (
-              <div key={index} className="bg-gray-700 p-4 rounded-lg flex justify-between items-center">
-                <div>
-                  <h3 className="font-medium">{task.title}</h3>
-                  <span className="text-xs bg-blue-900 text-blue-200 px-2 py-1 rounded-full">{task.category}</span>
-                </div>
+                      {tasks.map((task: Task, index: number) => (
+            <div key={index} className="bg-gray-700 p-4 rounded-lg flex justify-between items-center">
+              <div>
+                <h3 className={`font-medium ${task.status === 1 ? 'line-through text-gray-500' : ''}`}>
+                  {task.title}
+                </h3>
+                <span className="text-xs bg-blue-900 text-blue-200 px-2 py-1 rounded-full">{task.category}</span>
+              </div>
+              
+              {/* 2. Condição visual: se for 0 mostra o botão, se for 1 mostra um check */}
+              {task.status === 0 ? (
                 <button 
                   onClick={() => handleConcludeTask(task.id)}
                   className="bg-green-600 hover:bg-green-500 text-white px-3 py-1 rounded text-sm transition-colors"
                 >
                   Concluir
                 </button>
-              </div>
-            ))}
-            {tasks.length === 0 && <p className="text-gray-500 text-sm">Nenhuma tarefa pendente.</p>}
+              ) : (
+                <span className="text-green-400 font-bold flex items-center gap-1">
+                  ✅ Concluída
+                </span>
+              )}
+            </div>
+          ))}
           </div>
         </section>
 
