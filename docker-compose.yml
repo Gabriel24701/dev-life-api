@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  # Backend em Python
+  api:
+    build: 
+      context: .
+    container_name: dev-life-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./database:/app/database
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  # Frontend em React/Next.js
+  web:
+    build: 
+      context: ./dev-life-web
+    container_name: dev-life-web
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+    volumes:
+      - ./dev-life-web:/app
+      - /app/node_modules
+      - /app/.next
+    command: npx next dev --webpack
+    depends_on:
+      - api
+    deploy:
+      resources:
+        limits:
+          memory: 1G
