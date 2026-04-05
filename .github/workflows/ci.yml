@@ -1,4 +1,4 @@
-name: DevOps CI Pipeline
+name: DevOps CI/CD Pipeline
 
 on:
   push:
@@ -11,17 +11,27 @@ on:
       - main
 
 jobs:
-  integration:
-    name: Build & Validate Containers
+  integration_and_delivery:
+    name: Build, Validate & Push Containers
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout do Código
         uses: actions/checkout@v4
+      
+      - name: Login no Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build da imagem Backend (API)
-        run: docker build -t dev-life-api:test .
+      - name: Build & Push da imagem Backend (API)
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/dev-life-api:latest .
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/dev-life-api:latest
 
-      - name: Build da imagem Frontend (Web)
+      - name: Build & Push da imagem Frontend (Web)
         working-directory: ./dev-life-web
-        run: docker build -t dev-life-web:test .
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/dev-life-web:latest .
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/dev-life-web:latest
