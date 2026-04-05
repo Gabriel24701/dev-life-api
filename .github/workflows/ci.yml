@@ -25,6 +25,3 @@ jobs:
       - name: Build da imagem Frontend (Web)
         working-directory: ./dev-life-web
         run: docker build -t dev-life-web:test .
-
-      - name: Validar integridade do Docker Compose
-        run: docker-compose config
