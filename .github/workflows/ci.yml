@@ -28,6 +28,3 @@ jobs:
 
       - name: Validar integridade do Docker Compose
         run: docker-compose config
-        
-      - name: Validar integridade do Docker Compose
-        run: docker compose config
