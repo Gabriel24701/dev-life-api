@@ -14,7 +14,7 @@ RUN npm install
 COPY . .
 
 # Faz o build de produção do Next.js
-RUN npm run build
+RUN npx next build --webpack
 
 # Expõe a porta que o Next usa
 EXPOSE 3000
