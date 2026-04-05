@@ -1,0 +1,30 @@
+name: DevOps CI Pipeline
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+  pull_request:
+    branches:
+      - dev
+      - main
+
+jobs:
+  integration:
+    name: Build & Validate Containers
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do Código
+        uses: actions/checkout@v4
+
+      - name: Build da imagem Backend (API)
+        run: docker build -t dev-life-api:test .
+
+      - name: Build da imagem Frontend (Web)
+        working-directory: ./dev-life-web
+        run: docker build -t dev-life-web:test .
+
+      - name: Validar integridade do Docker Compose
+        run: docker-compose config
