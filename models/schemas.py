@@ -1,32 +1,44 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from datetime import datetime
+from typing import Optional
 
-class TaskCreate(BaseModel):
-    title: str = Field(..., min_length=3, max_length=100, example="Estudar FastAPI")
-    category: str = Field(..., example="Estudo")
-    description: str = Field(..., example="Ler a documentação oficial do FastAPI")
-    created_at: datetime = Field(..., example="2024-07-15T14:00:00")
+# ==========================================
+# SCHEMAS PARA TAREFAS (Tasks)
+# ==========================================
 
-class HabitCreate(BaseModel):
-    name: str = Field(..., min_length=3, max_length=150, example="Beber água")
-    category: str = Field(..., example="Saúde")
-    goal_type: str = Field(..., example="Diário")
-    target: int = Field(..., ge=1, description="Meta mínima para o hábito", example=3)
-    created_at: datetime = Field(..., example="2024-07-15T14:00:00")
+# 1. Base: O que é comum em todas as operações
+class TaskBase(BaseModel):
+    title: str
+    description: Optional[str] = None
 
-class CourseCreate(BaseModel):
-    title: str = Field(..., min_length=3, max_length=100, example="Python para Iniciantes")
-    platform: str = Field(..., min_length=3, max_length=100, example="Udemy")
-    progress: int = Field(..., ge=0, le=100, description="Progresso do curso de 0 a 100", example=50)
-    start_date: datetime = Field(..., example="2024-07-15T14:00:00")
+# 2. Create: O que o usuário MANDA para a API quando quer criar uma tarefa
+class TaskCreate(TaskBase):
+    pass # Herda tudo de TaskBase, não precisa adicionar nada agora
 
-class CourseUpdate(BaseModel):
-    progress: int = Field(..., ge=0, le=100, description="Progresso do curso de 0 a 100", example=80)
-
-class TaskResponse(TaskCreate):
+# 3. Response: O que a API DEVOLVE para o usuário (inclui os dados gerados pelo Banco)
+class TaskResponse(TaskBase):
     id: int
-    status: int
+    is_completed: bool
+    created_at: datetime
 
-class CourseResponse(CourseCreate):
+    class Config:
+        from_attributes = True # Essencial! Ensina o Pydantic a ler o objeto do SQLAlchemy
+
+# ==========================================
+# SCHEMAS PARA HÁBITOS (Habits)
+# ==========================================
+
+class HabitBase(BaseModel):
+    title: str
+    description: Optional[str] = None
+
+class HabitCreate(HabitBase):
+    pass
+
+class HabitResponse(HabitBase):
     id: int
+    streak: int
+    created_at: datetime
 
+    class Config:
+        from_attributes = True
