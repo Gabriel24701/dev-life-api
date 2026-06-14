@@ -5,20 +5,54 @@ on:
     branches:
       - dev
       - main
+      - security
   pull_request:
     branches:
       - dev
       - main
 
 jobs:
-  integration_and_delivery:
-    name: Build, Validate & Push Containers
+  # ---------------------------------------------------
+  # FASE 1: DEVSECOPS (TESTES & QUALIDADE)
+  # ---------------------------------------------------
+  quality_and_security:
+    name: Testes & SonarCloud
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout do Código
         uses: actions/checkout@v4
-      
+        with:
+          fetch-depth: 0
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar Dependências
+        run: pip install -r requirements.txt
+
+      - name: Rodar Testes Unitários (Pytest)
+        run: python -m pytest
+
+      - name: Analisar no SonarCloud
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+                GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+  # ---------------------------------------------------
+  # FASE 2: DELIVERY (CD) - DOCKER HUB
+  # ---------------------------------------------------
+  integration_and_delivery:
+    name: Build & Push Containers
+    needs: quality_and_security
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout do Código
+        uses: actions/checkout@v4
+
       - name: Login no Docker Hub
         uses: docker/login-action@v3
         with:

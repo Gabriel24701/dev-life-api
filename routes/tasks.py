@@ -1,97 +1,64 @@
-from fastapi import APIRouter, HTTPException
-from models.schemas import TaskCreate
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
 from typing import List
-from database.database import get_db
+from database import get_db
+from models.models import Task
 from models.schemas import TaskCreate, TaskResponse
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/tasks",
+    tags=["Tarefas"]
+)
 
+# ==========================================
+# 1. CRIAR UMA TAREFA (POST)
+# ==========================================
+@router.post("/", response_model=TaskResponse, status_code=201)
+def create_task(task: TaskCreate, db: Session = Depends(get_db)):
 
+    db_task = Task(title=task.title, description=task.description)
+    db.add(db_task)
+    db.commit()
+    db.refresh(db_task)
+    
+    return db_task
 
-from models.schemas import TaskCreate, TaskResponse #
+# ==========================================
+# 2. LISTAR TODAS AS TAREFAS (GET)
+# ==========================================
+@router.get("/", response_model=List[TaskResponse])
+def get_tasks(db: Session = Depends(get_db)):
 
-@router.get("/tasks", response_model=List[TaskResponse]) 
-def get_tasks():
-    """
-    Retorna a lista de todas as tarefas cadastradas.
-    """
-    try:
-        with get_db() as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT id, title, category, description, created_at, status FROM tasks") 
-            rows = cursor.fetchall()
-            return [
-                TaskResponse(
-                    id=row[0],
-                    title=row[1],
-                    category=row[2],
-                    description=row[3],
-                    created_at=row[4],
-                    status=row[5]
-                ) for row in rows
-            ]
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    tasks = db.query(Task).all()
+    return tasks
 
+# ==========================================
+# 3. CONCLUIR UMA TAREFA (PUT)
+# ==========================================
+@router.put("/{task_id}/complete", response_model=TaskResponse)
+def complete_task(task_id: int, db: Session = Depends(get_db)):
 
-@router.post("/tasks")
-def create_task(task: TaskCreate):
-    """Cria uma nova tarefa com os dados fornecidos.
-    """
-    try:
-        with get_db() as conn:
-            cursor = conn.cursor()
-            cursor.execute("""
-                INSERT INTO tasks (title, category, description, created_at)
-                VALUES (?, ?, ?, ?)
-            """, (task.title, task.category, task.description, task.created_at))
-            conn.commit()
-            return {"id": cursor.lastrowid, "message": "Tarefa salva com sucesso!"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    db_task = db.query(Task).filter(Task.id == task_id).first()
+    
+    if not db_task:
+        raise HTTPException(status_code=404, detail="Tarefa não encontrada")
+    
+    db_task.is_completed = True
+    db.commit()
+    db.refresh(db_task)
+    
+    return db_task
 
-@router.patch("/tasks/{task_id}")
-def conclude_task(task_id: int):
-    """Marca uma tarefa como concluída.
-    """
-    try:
-        with get_db() as conn:
-            cursor = conn.cursor()
-
-            cursor.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
-            task = cursor.fetchone()
-
-            if task is None:
-                if task is None:
-                    raise HTTPException(status_code=404, detail="Tarefa não encontrada.")
-            cursor.execute("""
-                UPDATE tasks
-                SET status = 1
-                WHERE id = ?
-            """, (task_id,))
-
-            conn.commit()
-            return {"message": "Tarefa marcada como concluída com sucesso!"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@router.delete("/tasks/{task_id}")
-def delete_task(task_id: int):
-    """Deleta uma tarefa com base no ID fornecido.
-    """
-    try:
-        with get_db() as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT * FROM tasks WHERE id = ?", (task_id,))
-            task = cursor.fetchone()
-
-            if task is None:
-                conn.close()
-                if task is None:
-                    raise HTTPException(status_code=404, detail="Tarefa não encontrada.")
-            
-            cursor.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
-            conn.commit()
-            return {"message": "Tarefa deletada com sucesso!"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+# ==========================================
+# 4. DELETAR UMA TAREFA (DELETE)
+# ==========================================
+@router.delete("/{task_id}", status_code=204)
+def delete_task(task_id: int, db: Session = Depends(get_db)):
+    db_task = db.query(Task).filter(Task.id == task_id).first()
+    
+    if not db_task:
+        raise HTTPException(status_code=404, detail="Tarefa não encontrada")
+    
+    db.delete(db_task)
+    db.commit()
+    return
