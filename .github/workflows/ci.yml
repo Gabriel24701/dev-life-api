@@ -63,9 +63,3 @@ jobs:
         run: |
           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/dev-life-api:latest .
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/dev-life-api:latest
-
-      - name: Build & Push da imagem Frontend (Web)
-        working-directory: ./dev-life-web
-        run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/dev-life-web:latest .
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/dev-life-web:latest
