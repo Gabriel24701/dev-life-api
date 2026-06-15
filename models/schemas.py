@@ -1,32 +1,77 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from datetime import datetime
+from typing import Optional
+class UserCreate(BaseModel):
+    name: str
+    email: str
+    password: str
 
-class TaskCreate(BaseModel):
-    title: str = Field(..., min_length=3, max_length=100, example="Estudar FastAPI")
-    category: str = Field(..., example="Estudo")
-    description: str = Field(..., example="Ler a documentação oficial do FastAPI")
-    created_at: datetime = Field(..., example="2024-07-15T14:00:00")
+class UserResponse(BaseModel):
+    id: int
+    name: str
+    email: str
+    is_active: bool
+
+    class Config:
+        from_attributes = True
+class TaskBase(BaseModel):
+    title: str
+    description: Optional[str] = None
+
+class TaskCreate(TaskBase):
+    pass
+class TaskResponse(TaskBase):
+    id: int
+    is_completed: bool
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class HabitBase(BaseModel):
+    title: str
+    description: Optional[str] = None
 
 class HabitCreate(BaseModel):
-    name: str = Field(..., min_length=3, max_length=150, example="Beber água")
-    category: str = Field(..., example="Saúde")
-    goal_type: str = Field(..., example="Diário")
-    target: int = Field(..., ge=1, description="Meta mínima para o hábito", example=3)
-    created_at: datetime = Field(..., example="2024-07-15T14:00:00")
+    title: str
 
-class CourseCreate(BaseModel):
-    title: str = Field(..., min_length=3, max_length=100, example="Python para Iniciantes")
-    platform: str = Field(..., min_length=3, max_length=100, example="Udemy")
-    progress: int = Field(..., ge=0, le=100, description="Progresso do curso de 0 a 100", example=50)
-    start_date: datetime = Field(..., example="2024-07-15T14:00:00")
-
-class CourseUpdate(BaseModel):
-    progress: int = Field(..., ge=0, le=100, description="Progresso do curso de 0 a 100", example=80)
-
-class TaskResponse(TaskCreate):
+class HabitResponse(BaseModel):
     id: int
-    status: int
+    title: str
+    streak: int
+    created_at: datetime
+    owner_id: int
 
-class CourseResponse(CourseCreate):
+    class Config:
+        from_attributes = True
+
+class StudyNoteCreate(BaseModel):
+    title: str
+    content: str
+    tags: Optional[str] = None
+
+class StudyNoteResponse(BaseModel):
     id: int
+    title: str
+    content: str
+    tags: Optional[str] = None
+    created_at: datetime
+    owner_id: int
 
+    class Config:
+        from_attributes = True
+
+class GoalCreate(BaseModel):
+    title: str
+    target_date: datetime
+
+class GoalResponse(BaseModel):
+    id: int
+    title: str
+    target_date: datetime
+    is_completed: bool
+    created_at: datetime
+    owner_id: int
+
+    class Config:
+        from_attributes = True

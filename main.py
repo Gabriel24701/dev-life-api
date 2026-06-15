@@ -1,53 +1,26 @@
 from fastapi import FastAPI
-from routes import tasks, courses, habits
-from models.task import Task
-from models.course import Course
-from models.habit import Habit
 from fastapi.middleware.cors import CORSMiddleware
+from database.database import engine
+from models.models import Base
+from routes import auth_routes
 
-app = FastAPI()
-app.include_router(tasks.router)
-app.include_router(courses.router)
-app.include_router(habits.router)
+Base.metadata.create_all(bind=engine)
+
+app = FastAPI(title="Dev Life API", version="2.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Em produção, trocar pela URL  do Front-end
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-def test_models():
-    print("Iniciando a aplicação...\n")
+from routes import tasks, habits
+app.include_router(tasks.router)
+app.include_router(habits.router)
+app.include_router(auth_routes.router)
 
-    # Testando Task
-    tarefa = Task(
-        title="Estudar Python",
-        category="Estudos",
-        description="Estudar a biblioteca Flask para desenvolvimento de APIs",
-        created_at="2023-10-01"
-    )
-    print(f"{tarefa}\n{tarefa.to_dict()}\n")
-
-    # Testando Course
-    course = Course(
-        title="Curso de Python",
-        platform="Alura",
-        progress=40,
-        start_date="2025-06-25"
-    )
-    print(course)
-    course.update_progress(100)
-    print(course)
-    print(course.to_dict(), "\n")
-
-    # Testando Habit
-    habit = Habit("Beber agua", "saude", "diariamente", 5, "2025/06/26")
-    print(habit)
-    print(habit.to_dict())
-    habit.mark_today()
-    print(habit.to_dict())
-
-if __name__ == "__main__":
-    test_models()
+@app.get("/")
+def read_root():
+    return {"message": "Bem-vindo à Dev Life API!", "status": "Online e Conectada ao Banco de Dados"}
