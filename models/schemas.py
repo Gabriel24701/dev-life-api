@@ -1,11 +1,19 @@
 from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
+class UserCreate(BaseModel):
+    name: str
+    email: str
+    password: str
 
-# ==========================================
-# SCHEMAS PARA TAREFAS (Tasks)
-# ==========================================
+class UserResponse(BaseModel):
+    id: int
+    name: str
+    email: str
+    is_active: bool
 
+    class Config:
+        from_attributes = True
 class TaskBase(BaseModel):
     title: str
     description: Optional[str] = None
@@ -20,21 +28,50 @@ class TaskResponse(TaskBase):
     class Config:
         from_attributes = True
 
-# ==========================================
-# SCHEMAS PARA HÁBITOS (Habits)
-# ==========================================
-
 class HabitBase(BaseModel):
     title: str
     description: Optional[str] = None
 
-class HabitCreate(HabitBase):
-    pass
+class HabitCreate(BaseModel):
+    title: str
 
-class HabitResponse(HabitBase):
+class HabitResponse(BaseModel):
     id: int
+    title: str
     streak: int
     created_at: datetime
+    owner_id: int
+
+    class Config:
+        from_attributes = True
+
+class StudyNoteCreate(BaseModel):
+    title: str
+    content: str
+    tags: Optional[str] = None
+
+class StudyNoteResponse(BaseModel):
+    id: int
+    title: str
+    content: str
+    tags: Optional[str] = None
+    created_at: datetime
+    owner_id: int
+
+    class Config:
+        from_attributes = True
+
+class GoalCreate(BaseModel):
+    title: str
+    target_date: datetime
+
+class GoalResponse(BaseModel):
+    id: int
+    title: str
+    target_date: datetime
+    is_completed: bool
+    created_at: datetime
+    owner_id: int
 
     class Config:
         from_attributes = True
