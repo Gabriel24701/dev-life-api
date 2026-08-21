@@ -63,3 +63,7 @@ jobs:
         run: |
           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/dev-life-api:latest .
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/dev-life-api:latest
+
+      - name: Disparar deploy no Azure App Service
+        run: |
+          curl -X POST "${{ secrets.AZURE_WEBHOOK_URL }}"
