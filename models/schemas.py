@@ -1,6 +1,9 @@
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Literal
+
+PriorityLevel = Literal["low", "medium", "high"]
+
 class UserCreate(BaseModel):
     name: str
     email: str
@@ -19,10 +22,20 @@ class TaskBase(BaseModel):
     description: Optional[str] = None
 
 class TaskCreate(TaskBase):
-    pass
+    priority: Optional[PriorityLevel] = "medium"
+    tags: Optional[str] = None
+
+class TaskUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    priority: Optional[PriorityLevel] = None
+    tags: Optional[str] = None
+
 class TaskResponse(TaskBase):
     id: int
     is_completed: bool
+    priority: PriorityLevel
+    tags: Optional[str] = None
     created_at: datetime
 
     class Config:
