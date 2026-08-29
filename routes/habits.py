@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from database.database import get_db
 from models.models import Habit, User
-from models.schemas import HabitCreate, HabitResponse
+from models.schemas import HabitCreate, HabitUpdate, HabitResponse
 from security.auth import get_current_user
 
 router = APIRouter(
@@ -18,7 +18,7 @@ def create_habit(
     current_user: User = Depends(get_current_user)
 ):
     """Cria um novo hábito atrelado ao usuário logado."""
-    new_habit = Habit(title=habit.title, owner_id=current_user.id)
+    new_habit = Habit(title=habit.title, description=habit.description, owner_id=current_user.id)
     db.add(new_habit)
     db.commit()
     db.refresh(new_habit)
@@ -32,6 +32,28 @@ def get_habits(
     """Retorna os hábitos apenas do usuário logado."""
     habits = db.query(Habit).filter(Habit.owner_id == current_user.id).all()
     return habits
+
+@router.put("/{habit_id}", response_model=HabitResponse)
+def update_habit(
+    habit_id: int,
+    habit_update: HabitUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Atualiza parcialmente um hábito existente, se pertencer ao usuário logado."""
+    db_habit = db.query(Habit).filter(Habit.id == habit_id, Habit.owner_id == current_user.id).first()
+
+    if not db_habit:
+        raise HTTPException(status_code=404, detail="Hábito não encontrado ou não pertence a você")
+
+    update_data = habit_update.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(db_habit, field, value)
+
+    db.commit()
+    db.refresh(db_habit)
+
+    return db_habit
 
 @router.put("/{habit_id}/increment", response_model=HabitResponse)
 def increment_streak(

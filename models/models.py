@@ -26,6 +26,8 @@ class Task(Base):
     title = Column(String, index=True)
     description = Column(String, index=True)
     is_completed = Column(Boolean, default=False)
+    priority = Column(String(10), nullable=False, server_default="medium")
+    tags = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     owner_id = Column(Integer, ForeignKey("users.id"))
@@ -37,6 +39,7 @@ class Habit(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
+    description = Column(String, nullable=True)
     streak = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
