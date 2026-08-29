@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Date, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database.database import Base
@@ -41,6 +41,7 @@ class Habit(Base):
     title = Column(String, index=True)
     description = Column(String, nullable=True)
     streak = Column(Integer, default=0)
+    last_completed_at = Column(Date, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     owner_id = Column(Integer, ForeignKey("users.id"))
