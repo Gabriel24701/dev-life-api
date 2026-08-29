@@ -45,12 +45,15 @@ class HabitBase(BaseModel):
     title: str
     description: Optional[str] = None
 
-class HabitCreate(BaseModel):
-    title: str
+class HabitCreate(HabitBase):
+    pass
 
-class HabitResponse(BaseModel):
+class HabitUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+
+class HabitResponse(HabitBase):
     id: int
-    title: str
     streak: int
     created_at: datetime
     owner_id: int
