@@ -105,3 +105,27 @@ def test_me_com_token_de_usuario_deletado_retorna_401(client, db):
 
     assert response.status_code == 401
     assert response.json()["detail"] == "Não foi possível validar as credenciais"
+
+
+# ─── PUT /auth/me ────────────────────────────────────────────────────────────
+def test_update_me_sucesso_atualiza_nome(client):
+    token = _register_and_login(client)
+
+    response = client.put(
+        "/auth/me", json={"name": "Novo Nome"}, headers=_auth_headers(token)
+    )
+
+    assert response.status_code == 200
+    assert response.json()["name"] == "Novo Nome"
+
+    # confirma persistência: uma nova leitura reflete o valor salvo
+    me = client.get("/auth/me", headers=_auth_headers(token))
+    assert me.json()["name"] == "Novo Nome"
+
+
+def test_update_me_nome_vazio_retorna_422(client):
+    token = _register_and_login(client)
+
+    response = client.put("/auth/me", json={"name": ""}, headers=_auth_headers(token))
+
+    assert response.status_code == 422

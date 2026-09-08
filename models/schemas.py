@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import datetime
 from typing import Optional, Literal
 
@@ -8,6 +8,9 @@ class UserCreate(BaseModel):
     name: str
     email: str
     password: str
+
+class UserUpdate(BaseModel):
+    name: str = Field(min_length=1)
 
 class UserResponse(BaseModel):
     id: int
