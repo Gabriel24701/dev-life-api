@@ -3,7 +3,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from database.database import get_db
 from models.models import User
-from models.schemas import UserCreate, UserResponse
+from models.schemas import UserCreate, UserResponse, UserUpdate
 from security.auth import get_password_hash, verify_password, create_access_token, get_current_user
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -11,6 +11,18 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 @router.get("/me", response_model=UserResponse)
 def read_current_user(current_user: User = Depends(get_current_user)):
     """Retorna os dados do usuário autenticado, resolvidos a partir do token JWT."""
+    return current_user
+
+@router.put("/me", response_model=UserResponse)
+def update_current_user(
+    user_update: UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Atualiza o nome do usuário autenticado."""
+    current_user.name = user_update.name
+    db.commit()
+    db.refresh(current_user)
     return current_user
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
