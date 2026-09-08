@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
+from datetime import date, timedelta, timezone, datetime
 from database.database import get_db
 from models.models import Habit, User
 from models.schemas import HabitCreate, HabitUpdate, HabitResponse
@@ -10,6 +11,19 @@ router = APIRouter(
     prefix="/habits",
     tags=["Hábitos"]
 )
+
+class AlreadyCompletedTodayError(Exception):
+    """Levantada quando o hábito já foi marcado como concluído no dia civil de hoje."""
+    pass
+
+def compute_new_streak(current_streak: int, last_completed_at: date | None, today: date) -> int:
+    """Calcula o novo streak a partir do último dia de conclusão e do dia de hoje (dia civil)."""
+    if last_completed_at == today:
+        raise AlreadyCompletedTodayError()
+    if last_completed_at == today - timedelta(days=1):
+        return current_streak + 1
+    # None (nunca concluído) ou mais antigo que ontem (pulou um dia) -> reinicia a sequência
+    return 1
 
 @router.post("/", response_model=HabitResponse, status_code=status.HTTP_201_CREATED)
 def create_habit(
@@ -66,8 +80,17 @@ def increment_streak(
     
     if not db_habit:
         raise HTTPException(status_code=404, detail="Hábito não encontrado ou não pertence a você")
-    
-    db_habit.streak += 1
+
+    # Dia civil calculado em UTC — simplificação conhecida: não considera o fuso horário
+    # do usuário (não existe campo de timezone no User hoje). Streak por fuso do usuário
+    # fica como trabalho futuro.
+    today = datetime.now(timezone.utc).date()
+    try:
+        db_habit.streak = compute_new_streak(db_habit.streak, db_habit.last_completed_at, today)
+    except AlreadyCompletedTodayError:
+        raise HTTPException(status_code=409, detail="Hábito já concluído hoje.")
+
+    db_habit.last_completed_at = today
     db.commit()
     db.refresh(db_habit)
     return db_habit

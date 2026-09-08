@@ -20,6 +20,9 @@ node_modules
 
 # testing
 coverage
+coverage.xml
+.coverage
+htmlcov/
 
 # next.js
 .next/
