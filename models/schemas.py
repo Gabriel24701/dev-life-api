@@ -12,6 +12,9 @@ class UserCreate(BaseModel):
 class UserUpdate(BaseModel):
     name: str = Field(min_length=1)
 
+class GoogleLoginPayload(BaseModel):
+    credential: str
+
 class UserResponse(BaseModel):
     id: int
     name: str
