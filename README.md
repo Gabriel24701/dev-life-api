@@ -94,6 +94,30 @@ uvicorn main:app --reload
 
 ---
 
+## 🔑 Variáveis de ambiente
+
+| Variável | Obrigatória | Descrição |
+|---|---|---|
+| `SECRET_KEY` | Recomendada | Assina os tokens JWT. Tem um valor padrão de desenvolvimento no código, mas deve ser sobrescrita em produção. |
+| `DATABASE_URL` | Não | String de conexão do banco (Postgres em produção). Sem ela, cai no SQLite local (`devlife_local.db`). |
+| `GOOGLE_CLIENT_ID` | **Sim, para login via Google** | Client ID OAuth do Google, usado por `POST /auth/google` para validar a audiência (`aud`) do ID token recebido do frontend. **Sem essa variável configurada, `/auth/google` falha ao verificar qualquer token** — a rota fica inutilizável, mesmo com um token do Google legítimo. |
+
+**Onde configurar:**
+- **Produção (Azure):** App Service → *Configuration* → *Application Settings*.
+- **Desenvolvimento local:** o projeto **não carrega `.env` automaticamente** (não usa `python-dotenv`) — exporte a variável no shell antes de rodar o servidor, por exemplo:
+  ```bash
+  # Windows (cmd)
+  set GOOGLE_CLIENT_ID=seu-client-id.apps.googleusercontent.com
+  uvicorn main:app --reload
+  ```
+  ```bash
+  # PowerShell
+  $env:GOOGLE_CLIENT_ID = "seu-client-id.apps.googleusercontent.com"
+  uvicorn main:app --reload
+  ```
+
+---
+
 ## 🧪 Endpoints principais
 
 ### 📝 Tarefas
