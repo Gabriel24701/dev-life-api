@@ -118,6 +118,48 @@ uvicorn main:app --reload
 
 ---
 
+## 🗄️ Migrations (Alembic)
+
+O schema de produção (Postgres) é versionado com [Alembic](https://alembic.sqlalchemy.org/).
+O SQLite local (`devlife_local.db`) e o banco de testes (in-memory, usado por
+`tests/conftest.py`) **não** passam por Alembic — continuam sendo criados
+diretamente a partir dos models via `Base.metadata.create_all`, já que são
+bancos descartáveis sem necessidade de histórico.
+
+**Fluxo para uma mudança de schema:**
+
+1. Altere o model em `models/models.py`.
+2. Gere a migration contra um Postgres local/descartável (não contra o
+   SQLite local nem contra produção):
+   ```bash
+   alembic revision --autogenerate -m "descricao da mudanca"
+   ```
+3. **Revise manualmente** o arquivo gerado em `alembic/versions/` —
+   autogenerate não detecta renomeações de coluna/tabela (aparecem como
+   drop+add, risco de perda de dado) e pode errar sutilezas de
+   `server_default`/constraints.
+4. Teste localmente: `alembic upgrade head` contra o Postgres
+   local/descartável.
+5. Commite a migration junto com a mudança de model, no mesmo PR.
+6. O CI (`.github/workflows/ci.yml`, job `migrations_check`) roda
+   `alembic upgrade head` do zero contra um Postgres descartável do próprio
+   pipeline, pegando migrations quebradas antes do merge — **isso nunca
+   toca produção.**
+7. Aplicar em produção é **manual e deliberado**: rodar o workflow
+   `.github/workflows/migrate-production.yml` (aba *Actions* → *Run
+   workflow*, digitando "sim" para confirmar) depois que o código e a
+   migration já estiverem revisados. Requer o secret
+   `PRODUCTION_DATABASE_URL` configurado no repositório.
+
+Nunca edite uma migration já aplicada em produção — sempre crie uma nova
+revisão.
+
+> A migration inicial (baseline representando o schema já existente em
+> produção antes do Alembic) é um procedimento único, documentado em
+> [`docs/alembic-baseline-runbook.md`](docs/alembic-baseline-runbook.md).
+
+---
+
 ## 🧪 Endpoints principais
 
 ### 📝 Tarefas

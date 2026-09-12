@@ -41,12 +41,58 @@ jobs:
         env:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                 SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  # ---------------------------------------------------
+  # FASE 1b: VALIDAÇÃO DE MIGRATIONS (ALEMBIC)
+  #
+  # Roda `alembic upgrade head` do zero contra um Postgres descartável do
+  # próprio job (nunca produção). Isso pega migrations quebradas e
+  # incompatibilidades Postgres-específicas que os testes (SQLite in-memory)
+  # não detectam. Aplicar em produção continua manual — ver
+  # .github/workflows/migrate-production.yml.
+  # ---------------------------------------------------
+  migrations_check:
+    name: Alembic upgrade head (Postgres descartável)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: devlife
+          POSTGRES_PASSWORD: devlife
+          POSTGRES_DB: devlife_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout do Código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar Dependências
+        run: pip install -r requirements.txt
+
+      - name: Aplicar todas as migrations do zero
+        env:
+          DATABASE_URL: postgresql://devlife:devlife@localhost:5432/devlife_ci
+        run: alembic upgrade head
+
   # ---------------------------------------------------
   # FASE 2: DELIVERY (CD) - DOCKER HUB
   # ---------------------------------------------------
   integration_and_delivery:
     name: Build & Push Containers
-    needs: quality_and_security
+    needs: [quality_and_security, migrations_check]
     runs-on: ubuntu-latest
     
     steps:
