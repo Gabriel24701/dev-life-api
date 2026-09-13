@@ -41,12 +41,85 @@ jobs:
         env:
                 GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                 SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  # ---------------------------------------------------
+  # FASE 1b: VALIDAÇÃO DE MIGRATIONS (ALEMBIC)
+  #
+  # O Postgres descartável deste job nasce vazio — diferente de produção,
+  # que já tinha o schema todo antes do Alembic existir (por isso lá fizemos
+  # `stamp`, não `upgrade`, na baseline). Pra simular isso corretamente:
+  #   1. Base.metadata.create_all() recria o schema pre-Alembic (equivalente
+  #      ao que o app sempre fez sozinho, sem migration nenhuma).
+  #   2. `alembic stamp <revisao da baseline>` marca esse schema como já
+  #      estando na baseline, sem tentar re-executar o DDL dela (que já é
+  #      redundante — create_all já criou tudo, index incluso).
+  #   3. `alembic upgrade head` a partir daí. Hoje é no-op (baseline == head).
+  #      A partir da PRÓXIMA migration real adicionada, este passo passa a
+  #      aplicá-la de verdade contra um banco que já tem a baseline — é aqui
+  #      que migrations futuras são validadas.
+  #
+  # Isso nunca toca produção. Aplicar em produção continua manual — ver
+  # .github/workflows/migrate-production.yml.
+  # ---------------------------------------------------
+  migrations_check:
+    name: Baseline (stamp) + upgrade head (Postgres descartável)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: devlife
+          POSTGRES_PASSWORD: devlife
+          POSTGRES_DB: devlife_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql://devlife:devlife@localhost:5432/devlife_ci
+
+    steps:
+      - name: Checkout do Código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar Dependências
+        run: pip install -r requirements.txt
+
+      - name: Recriar schema pre-Alembic (equivalente ao create_all historico de producao)
+        run: python -c "from database.database import Base, engine; import models.models; Base.metadata.create_all(engine)"
+
+      # Por que a revisao fixa 8b9b5db169b4 e nao "head": isto reproduz de
+      # proposito o cenario real de producao, onde o schema ja existia (via
+      # create_all historico, antes do Alembic existir) e a baseline so
+      # RECONHECEU esse estado — nunca executou upgrade contra banco vazio.
+      # "head" mudaria conforme migrations futuras forem adicionadas, e
+      # faria o stamp pular direto pra elas, sem nunca testar seu upgrade de
+      # verdade. Fixando na baseline, qualquer migration depois dela e quem
+      # sera exercitada pelo `alembic upgrade head` do passo seguinte — e
+      # por isso este valor nao deve mudar quando novas migrations forem
+      # adicionadas.
+      - name: Carimbar a baseline (equivalente ao stamp feito em producao)
+        run: alembic stamp 8b9b5db169b4
+
+      - name: Aplicar migrations novas (upgrade head de verdade)
+        run: alembic upgrade head
+
   # ---------------------------------------------------
   # FASE 2: DELIVERY (CD) - DOCKER HUB
   # ---------------------------------------------------
   integration_and_delivery:
     name: Build & Push Containers
-    needs: quality_and_security
+    needs: [quality_and_security, migrations_check]
     runs-on: ubuntu-latest
     
     steps:

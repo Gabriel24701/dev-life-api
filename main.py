@@ -4,7 +4,11 @@ from database.database import engine
 from models.models import Base
 from routes import auth_routes
 
-Base.metadata.create_all(bind=engine)
+# create_all so roda no fallback SQLite local (conveniencia de dev/onboarding).
+# Em producao (Postgres) o schema e gerenciado pelo Alembic (ver alembic/),
+# entao nao queremos dois mecanismos alterando o schema de producao.
+if engine.name == "sqlite":
+    Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Dev Life API", version="2.0")
 

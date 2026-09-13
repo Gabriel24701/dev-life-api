@@ -1,6 +1,10 @@
 -- Migration 0001: suporte a login via Google
 -- Rodar manualmente contra o Postgres de produção (não há Alembic configurado).
 -- Idempotente onde possível (IF NOT EXISTS), mas revise antes de rodar.
+--
+-- NOTA (pós-Alembic): este arquivo é um registro histórico de uma mudança
+-- aplicada manualmente antes da introdução do Alembic. As migrations atuais
+-- vivem em alembic/versions/ — não adicione novos arquivos aqui.
 
 -- 1. hashed_password passa a ser opcional (contas Google-only não têm senha local)
 ALTER TABLE users ALTER COLUMN hashed_password DROP NOT NULL;
