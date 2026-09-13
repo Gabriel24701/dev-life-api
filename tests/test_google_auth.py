@@ -56,6 +56,37 @@ def test_google_login_recorrente_nao_duplica_conta(client, monkeypatch, db):
     assert me1["id"] == me2["id"]
 
 
+def test_google_login_cria_conta_nova_publica_evento_user_created(client, monkeypatch, db):
+    published = {}
+    monkeypatch.setattr(
+        "routes.auth_routes.publish_user_created", lambda **kwargs: published.update(kwargs)
+    )
+    _mock_google_verify(
+        monkeypatch, email="publica-evento@example.com", sub="google-sub-evento"
+    )
+
+    response = client.post("/auth/google", json={"credential": "fake-credential"})
+
+    assert response.status_code == 200
+    assert published["email"] == "publica-evento@example.com"
+    assert published["auth_provider"] == "google"
+
+
+def test_google_login_recorrente_nao_publica_evento_de_novo(client, monkeypatch, db):
+    calls = []
+    monkeypatch.setattr(
+        "routes.auth_routes.publish_user_created", lambda **kwargs: calls.append(kwargs)
+    )
+    _mock_google_verify(
+        monkeypatch, email="so-uma-vez@example.com", sub="google-sub-unico"
+    )
+
+    client.post("/auth/google", json={"credential": "fake-credential"})
+    client.post("/auth/google", json={"credential": "fake-credential"})
+
+    assert len(calls) == 1
+
+
 def test_google_login_colisao_com_conta_local_retorna_409(client, monkeypatch):
     _register_and_login(client, email="jalocal@example.com")
 

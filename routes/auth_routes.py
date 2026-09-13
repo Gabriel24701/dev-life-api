@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token
@@ -8,6 +8,7 @@ from database.database import get_db
 from models.models import User
 from models.schemas import GoogleLoginPayload, UserCreate, UserResponse, UserUpdate
 from security.auth import get_password_hash, verify_password, create_access_token, get_current_user
+from messaging.publisher import publish_user_created
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -31,14 +32,16 @@ def update_current_user(
     return current_user
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
-def register_user(user: UserCreate, db: Session = Depends(get_db)):
+def register_user(
+    user: UserCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)
+):
     """Registra um novo usuário, garantindo que o e-mail seja único e a senha seja armazenada de forma segura."""
     db_user = db.query(User).filter(User.email == user.email).first()
     if db_user:
         raise HTTPException(status_code=400, detail="E-mail já cadastrado.")
-    
+
     hashed_pw = get_password_hash(user.password)
-    
+
     new_user = User(
         name=user.name,
         email=user.email,
@@ -47,6 +50,13 @@ def register_user(user: UserCreate, db: Session = Depends(get_db)):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
+
+    background_tasks.add_task(
+        publish_user_created,
+        user_id=new_user.id,
+        email=new_user.email,
+        auth_provider=new_user.auth_provider,
+    )
 
     return new_user
 
@@ -67,7 +77,11 @@ def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = D
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.post("/google")
-def google_login(payload: GoogleLoginPayload, db: Session = Depends(get_db)):
+def google_login(
+    payload: GoogleLoginPayload,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
     """Autentica via Google Identity Services: verifica o ID token, encontra
     a conta existente (por google_sub) ou cria uma nova, e retorna o mesmo
     formato de resposta de /auth/login."""
@@ -101,6 +115,13 @@ def google_login(payload: GoogleLoginPayload, db: Session = Depends(get_db)):
         db.add(user)
         db.commit()
         db.refresh(user)
+
+        background_tasks.add_task(
+            publish_user_created,
+            user_id=user.id,
+            email=user.email,
+            auth_provider=user.auth_provider,
+        )
 
     access_token = create_access_token(data={"sub": str(user.id)})
 
