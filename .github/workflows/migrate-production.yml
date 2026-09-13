@@ -1,0 +1,39 @@
+name: Aplicar migrations em produção (manual)
+
+# Disparo manual e deliberado, nunca atrelado a push/merge. Rodar só depois
+# de revisar a migration e de já ter testado `alembic upgrade head` contra
+# um Postgres local/descartável (ver FASE 1b em ci.yml e
+# docs/alembic-baseline-runbook.md).
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Digite "sim" para confirmar que a migration foi revisada e deve ser aplicada em produção agora'
+        required: true
+
+jobs:
+  migrate:
+    name: alembic upgrade head (produção)
+    runs-on: ubuntu-latest
+    if: github.event.inputs.confirm == 'sim'
+
+    steps:
+      - name: Checkout do Código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # --only-binary :all: evita executar setup.py arbitrario de uma sdist
+      # maliciosa; a unica excecao e python-multipart==0.0.5, que so publica
+      # sdist no PyPI (sem wheel) — build local do proprio pacote, nao de
+      # terceiros na cadeia de instalacao.
+      - name: Instalar Dependências
+        run: "pip install --only-binary :all: --no-binary python-multipart -r requirements.txt"
+
+      - name: Rodar alembic upgrade head contra produção
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+        run: alembic upgrade head
