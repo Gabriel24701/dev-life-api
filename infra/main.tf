@@ -28,7 +28,7 @@ variable "db_password" {
 resource "azurerm_resource_group" "rg_dev_life" {
   name     = "rg-dev-life-backend"
   location = "canadacentral"
-  
+
   tags = {
     Environment = "Desenvolvimento"
     Project     = "Dev Life"
@@ -75,7 +75,7 @@ resource "azurerm_service_plan" "app_plan" {
   location            = "centralus"
   resource_group_name = azurerm_resource_group.rg_dev_life.name
   os_type             = "Linux"
-  sku_name            = "F1" 
+  sku_name            = "F1"
 }
 
 resource "azurerm_linux_web_app" "api_app" {
@@ -86,9 +86,9 @@ resource "azurerm_linux_web_app" "api_app" {
 
   site_config {
     always_on = false
-    
+
     application_stack {
-      docker_image_name   = "bielllb/dev-life-api:latest" 
+      docker_image_name   = "bielllb/dev-life-api:latest"
       docker_registry_url = "https://index.docker.io/v1/"
     }
   }
@@ -96,5 +96,66 @@ resource "azurerm_linux_web_app" "api_app" {
   app_settings = {
     "WEBSITES_PORT" = "8000"
     "DATABASE_URL"  = "postgresql://${azurerm_postgresql_flexible_server.db_server.administrator_login}:${var.db_password}@${azurerm_postgresql_flexible_server.db_server.name}.postgres.database.azure.com:5432/${azurerm_postgresql_flexible_server_database.db_dev_life.name}"
+  }
+}
+
+# =========================================================
+# 4. MENSAGERIA (Container Apps Job para o worker RabbitMQ)
+# =========================================================
+
+variable "rabbitmq_url" {
+  description = "URL de conexao do RabbitMQ (CloudAMQP), formato amqps://usuario:senha@host/vhost"
+  type        = string
+  sensitive   = true
+}
+
+resource "azurerm_log_analytics_workspace" "worker_logs" {
+  name                = "log-devlife-worker"
+  location            = "centralus"
+  resource_group_name = azurerm_resource_group.rg_dev_life.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
+resource "azurerm_container_app_environment" "worker_env" {
+  name                       = "cae-devlife-worker"
+  location                   = "centralus"
+  resource_group_name        = azurerm_resource_group.rg_dev_life.name
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.worker_logs.id
+}
+
+resource "azurerm_container_app_job" "worker_job" {
+  name                         = "job-devlife-worker"
+  location                     = "centralus"
+  resource_group_name          = azurerm_resource_group.rg_dev_life.name
+  container_app_environment_id = azurerm_container_app_environment.worker_env.id
+
+  replica_timeout_in_seconds = 300
+  replica_retry_limit        = 1
+
+  schedule_trigger_config {
+    cron_expression          = "*/15 * * * *"
+    parallelism              = 1
+    replica_completion_count = 1
+  }
+
+  secret {
+    name  = "rabbitmq-url"
+    value = var.rabbitmq_url
+  }
+
+  template {
+    container {
+      name    = "worker"
+      image   = "bielllb/dev-life-api:latest"
+      cpu     = 0.25
+      memory  = "0.5Gi"
+      command = ["python", "worker.py"]
+
+      env {
+        name        = "RABBITMQ_URL"
+        secret_name = "rabbitmq-url"
+      }
+    }
   }
 }
