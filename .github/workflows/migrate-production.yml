@@ -26,8 +26,12 @@ jobs:
         with:
           python-version: '3.11'
 
+      # --only-binary :all: evita executar setup.py arbitrario de uma sdist
+      # maliciosa; a unica excecao e python-multipart==0.0.5, que so publica
+      # sdist no PyPI (sem wheel) — build local do proprio pacote, nao de
+      # terceiros na cadeia de instalacao.
       - name: Instalar Dependências
-        run: pip install -r requirements.txt
+        run: "pip install --only-binary :all: --no-binary python-multipart -r requirements.txt"
 
       - name: Rodar alembic upgrade head contra produção
         env:
