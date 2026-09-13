@@ -22,7 +22,13 @@ config = context.config
 # Reaproveita a mesma resolucao de DATABASE_URL usada pela aplicacao (fallback
 # SQLite local + reescrita postgres:// -> postgresql://) em vez de duplicar
 # essa logica ou hardcodear a URL no alembic.ini.
-config.set_main_option("sqlalchemy.url", SQLALCHEMY_DATABASE_URL)
+#
+# "%" e escapado como "%%" porque o ConfigParser interno do Alembic trata "%"
+# como sintaxe de interpolacao (%(name)s) — sem isso, uma senha com caractere
+# URL-encoded (ex.: "%40" pra "@") quebra o set_main_option.
+config.set_main_option(
+    "sqlalchemy.url", SQLALCHEMY_DATABASE_URL.replace("%", "%%")
+)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.

@@ -5,6 +5,9 @@ __pycache__/
 *.pyc
 *db
 
+# artefato local do runbook manual de baseline do Alembic (docs/alembic-baseline-runbook.md)
+prod_schema_snapshot.sql
+
 ##Front-end
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 

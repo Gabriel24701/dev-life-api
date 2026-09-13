@@ -54,6 +54,19 @@ runbook é `alembic stamp head`, que é somente metadado (não executa DDL).
    alembic revision --autogenerate -m "baseline: schema atual de producao"
    ```
 
+   > ⚠️ **Cuidado com bytecode cache (`__pycache__`) depois de editar
+   > `models/models.py`:** em pelo menos uma execução no Windows, rodar
+   > `alembic revision --autogenerate` logo após editar os models gerou um
+   > diff **invertido** (revertendo mudanças recém-feitas no model, como se
+   > ele ainda estivesse na versão antiga) — causado por um `.pyc` obsoleto
+   > em `models/__pycache__/` não invalidado a tempo. Se o diff gerado
+   > parecer contradizer uma mudança de model que você acabou de fazer,
+   > rode antes:
+   > ```bash
+   > find . -name "__pycache__" -not -path "./venv/*" -exec rm -rf {} +
+   > ```
+   > e gere a revisão de novo antes de confiar no resultado.
+
 5. **Inspecionar o arquivo gerado em `alembic/versions/`.** O esperado é que
    venha **vazio** (`upgrade()`/`downgrade()` sem operações) — isso confirma
    que os models batem exatamente com o schema real. Se vier com `op.add_column`,
