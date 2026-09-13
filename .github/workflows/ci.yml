@@ -65,13 +65,23 @@ jobs:
     name: Baseline (stamp) + upgrade head (Postgres descartável)
     runs-on: ubuntu-latest
 
+    # Credenciais do Postgres descartável declaradas uma única vez — usadas
+    # tanto pelo service container abaixo quanto pra montar a DATABASE_URL
+    # (ver step "Montar DATABASE_URL..."). Não é segredo real (banco efêmero
+    # do próprio job), mas evita duplicar o valor e tira o "usuario:senha"
+    # hardcoded de dentro de uma URL.
+    env:
+      POSTGRES_USER: devlife
+      POSTGRES_PASSWORD: devlife
+      POSTGRES_DB: devlife_ci
+
     services:
       postgres:
         image: postgres:14
         env:
-          POSTGRES_USER: devlife
-          POSTGRES_PASSWORD: devlife
-          POSTGRES_DB: devlife_ci
+          POSTGRES_USER: ${{ env.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ env.POSTGRES_DB }}
         ports:
           - 5432:5432
         options: >-
@@ -79,9 +89,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
-    env:
-      DATABASE_URL: postgresql://devlife:devlife@localhost:5432/devlife_ci
 
     steps:
       - name: Checkout do Código
@@ -92,8 +99,15 @@ jobs:
         with:
           python-version: '3.11'
 
+      # --only-binary :all: evita executar setup.py arbitrario de uma sdist
+      # maliciosa; a unica excecao e python-multipart==0.0.5, que so publica
+      # sdist no PyPI (sem wheel) — build local do proprio pacote, nao de
+      # terceiros na cadeia de instalacao.
       - name: Instalar Dependências
-        run: pip install -r requirements.txt
+        run: "pip install --only-binary :all: --no-binary python-multipart -r requirements.txt"
+
+      - name: Montar DATABASE_URL a partir das credenciais do Postgres descartável
+        run: echo "DATABASE_URL=postgresql://$POSTGRES_USER:$POSTGRES_PASSWORD@localhost:5432/$POSTGRES_DB" >> "$GITHUB_ENV"
 
       - name: Recriar schema pre-Alembic (equivalente ao create_all historico de producao)
         run: python -c "from database.database import Base, engine; import models.models; Base.metadata.create_all(engine)"
