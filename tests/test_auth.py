@@ -27,6 +27,23 @@ def test_register_email_duplicado_retorna_400(client):
     assert response.json()["detail"] == "E-mail já cadastrado."
 
 
+def test_register_sucesso_publica_evento_user_created(client, monkeypatch):
+    published = {}
+    monkeypatch.setattr(
+        "routes.auth_routes.publish_user_created", lambda **kwargs: published.update(kwargs)
+    )
+
+    response = client.post(
+        "/auth/register",
+        json={"name": "Bia", "email": "bia@example.com", "password": "secret123"},
+    )
+
+    assert response.status_code == 201
+    assert published["email"] == "bia@example.com"
+    assert published["auth_provider"] == "local"
+    assert isinstance(published["user_id"], int)
+
+
 # ─── POST /auth/login ───────────────────────────────────────────────────────
 def test_login_sucesso_retorna_token(client):
     client.post(
