@@ -1,28 +1,5 @@
 # =========================================================
-# CONFIGURAÇÃO E VARIÁVEIS
-# =========================================================
-
-terraform {
-  required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "~> 3.0"
-    }
-  }
-}
-
-provider "azurerm" {
-  features {}
-}
-
-variable "db_password" {
-  description = "A palavra-passe do administrador da Base de Dados PostgreSQL"
-  type        = string
-  sensitive   = true
-}
-
-# =========================================================
-# 1. O GRUPO DE RECURSOS 
+# 1. O GRUPO DE RECURSOS
 # =========================================================
 
 resource "azurerm_resource_group" "rg_dev_life" {
@@ -88,26 +65,27 @@ resource "azurerm_linux_web_app" "api_app" {
     always_on = false
 
     application_stack {
-      docker_image_name   = "bielllb/dev-life-api:latest"
-      docker_registry_url = "https://index.docker.io/v1/"
+      docker_image_name = "bielllb/dev-life-api:latest"
+      docker_registry_url = "https://index.docker.io"
     }
   }
 
   app_settings = {
     "WEBSITES_PORT" = "8000"
-    "DATABASE_URL"  = "postgresql://${azurerm_postgresql_flexible_server.db_server.administrator_login}:${var.db_password}@${azurerm_postgresql_flexible_server.db_server.name}.postgres.database.azure.com:5432/${azurerm_postgresql_flexible_server_database.db_dev_life.name}"
+    "WEBSITES_ENABLE_APP_SERVICE_STORAGE"   = "false"
+    "DATABASE_URL"                          = "postgresql://${azurerm_postgresql_flexible_server.db_server.administrator_login}:${urlencode(var.db_password)}@${azurerm_postgresql_flexible_server.db_server.name}.postgres.database.azure.com:5432/${azurerm_postgresql_flexible_server_database.db_dev_life.name}?sslmode=require"
+    "GOOGLE_CLIENT_ID"                      = var.google_client_id
+    "RABBITMQ_URL"                          = var.rabbitmq_url
+    "APPLICATIONINSIGHTS_CONNECTION_STRING" = azurerm_application_insights.api_insights.connection_string
+  }
+  tags = {
+    "hidden-link: /app-insights-resource-id" = "/subscriptions/cc0a0efc-329c-4488-851b-f9633ca7479c/resourceGroups/rg-dev-life-backend/providers/microsoft.insights/components/appi-devlife-api"
   }
 }
 
 # =========================================================
 # 4. MENSAGERIA (Container Apps Job para o worker RabbitMQ)
 # =========================================================
-
-variable "rabbitmq_url" {
-  description = "URL de conexao do RabbitMQ (CloudAMQP), formato amqps://usuario:senha@host/vhost"
-  type        = string
-  sensitive   = true
-}
 
 resource "azurerm_log_analytics_workspace" "worker_logs" {
   name                = "log-devlife-worker"
