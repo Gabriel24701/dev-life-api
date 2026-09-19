@@ -81,7 +81,7 @@ def increment_streak(
     if not db_habit:
         raise HTTPException(status_code=404, detail="Hábito não encontrado ou não pertence a você")
 
-    # Dia civil calculado em UTC — simplificação conhecida: não considera o fuso horário
+    # Dia civil calculado em UTC, simplificação conhecida: não considera o fuso horário
     # do usuário (não existe campo de timezone no User hoje). Streak por fuso do usuário
     # fica como trabalho futuro.
     today = datetime.now(timezone.utc).date()

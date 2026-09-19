@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 QUEUE_NAME = "dev_life.user_created"
 
-# Limites de seguranca por execucao do Job — evita que um acumulo anormal
+# Limites de seguranca por execucao do Job: evita que um acumulo anormal
 # de mensagens (ex.: RabbitMQ fora do ar por um dia) faca uma unica
 # execucao rodar por tempo indefinido. O que sobrar fica pra proxima
 # chamada do Cron.
@@ -25,7 +25,7 @@ MAX_RUNTIME_SECONDS = float(os.getenv("WORKER_MAX_SECONDS", "60"))
 
 def handle_user_created_event(body: bytes) -> dict:
     """Trata uma mensagem 'user_created': parseia o payload e loga de forma
-    estruturada. Nao faz ack/nack (fica no chamador) — so transforma
+    estruturada. Nao faz ack/nack (fica no chamador), so transforma
     bytes -> dict e loga, por isso e testavel sem broker real.
     """
     payload = json.loads(body)
@@ -45,7 +45,7 @@ def drain_queue(channel) -> int:
     falha individual) nesta execucao.
 
     Falha ao tratar UMA mensagem (ex.: JSON invalido) descarta so aquela
-    mensagem (nack sem requeue) e segue pra proxima — nao interrompe o
+    mensagem (nack sem requeue) e segue pra proxima; nao interrompe o
     drain. Uma falha de conexao (ex.: broker cai no meio) nao e capturada
     aqui: propaga pra fora, porque isso e falha real de execucao, nao
     problema de uma mensagem so.
@@ -65,7 +65,7 @@ def drain_queue(channel) -> int:
 
         method, _properties, body = channel.basic_get(queue=QUEUE_NAME, auto_ack=False)
         if method is None:
-            break  # fila vazia — drain concluido
+            break  # fila vazia: drain concluido
 
         try:
             handle_user_created_event(body)

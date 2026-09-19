@@ -75,8 +75,8 @@ def test_login_senha_errada_retorna_401(client):
 
 
 def test_login_usuario_inexistente_retorna_401_com_mesma_mensagem_da_senha_errada(client):
-    # Confirmado manualmente: mesmo status e mesma mensagem que senha errada —
-    # o endpoint não vaza quais e-mails estão cadastrados.
+    # Confirmado manualmente: mesmo status e mesma mensagem que senha errada.
+    # O endpoint não vaza quais e-mails estão cadastrados.
     response = client.post(
         "/auth/login", data={"username": "ghost@example.com", "password": "whatever"}
     )
@@ -96,7 +96,7 @@ def test_me_com_token_valido_retorna_usuario_correto(client):
 
 
 def test_me_sem_token_retorna_401(client):
-    # Levantado pelo OAuth2PasswordBearer antes de get_current_user rodar —
+    # Levantado pelo OAuth2PasswordBearer antes de get_current_user rodar;
     # mensagem real é "Not authenticated" (default do FastAPI), por isso não
     # é assertada aqui para não acoplar o teste a texto interno da lib.
     response = client.get("/auth/me")

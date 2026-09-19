@@ -8,7 +8,7 @@ class User(Base):
     # Nome explicito pra bater com a constraint real de producao, criada pela
     # migration manual 0001 (ALTER TABLE ... ADD COLUMN google_sub VARCHAR
     # UNIQUE) antes do Alembic existir. Postgres cria isso como uma UNIQUE
-    # CONSTRAINT (nao uma unique INDEX), entao declaramos igual aqui — usar
+    # CONSTRAINT (nao uma unique INDEX), entao declaramos igual aqui: usar
     # unique=True/index=True no Column geraria um objeto diferente do que
     # ja existe no banco.
     __table_args__ = (
