@@ -85,7 +85,7 @@ def test_drain_queue_respeita_limite_de_mensagens_por_execucao(monkeypatch):
 
     assert processed == 2
     assert channel.acked == [1, 2]
-    # ainda sobraram mensagens na fila fake — confirma que parou antes de
+    # ainda sobraram mensagens na fila fake: confirma que parou antes de
     # esvaziar, deixando o resto para a proxima execucao do Cron.
     assert len(channel._bodies) == 3
 

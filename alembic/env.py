@@ -24,7 +24,7 @@ config = context.config
 # essa logica ou hardcodear a URL no alembic.ini.
 #
 # "%" e escapado como "%%" porque o ConfigParser interno do Alembic trata "%"
-# como sintaxe de interpolacao (%(name)s) — sem isso, uma senha com caractere
+# como sintaxe de interpolacao (%(name)s). Sem isso, uma senha com caractere
 # URL-encoded (ex.: "%40" pra "@") quebra o set_main_option.
 config.set_main_option(
     "sqlalchemy.url", SQLALCHEMY_DATABASE_URL.replace("%", "%%")

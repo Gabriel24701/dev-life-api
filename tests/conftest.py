@@ -22,7 +22,7 @@ def _no_real_rabbitmq(monkeypatch):
     """Evita qualquer tentativa real de publish no RabbitMQ durante a
     suite, independente de RABBITMQ_URL estar setada no ambiente de quem
     roda os testes localmente. So mexe na referencia usada pelas rotas
-    HTTP — os testes isolados de messaging/publisher.py chamam a funcao
+    HTTP; os testes isolados de messaging/publisher.py chamam a funcao
     real diretamente e nao devem ser afetados por este fixture. Testes
     que querem verificar o publish sobrescrevem isso com seu proprio
     monkeypatch."""
