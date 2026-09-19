@@ -87,6 +87,10 @@ class GoalCreate(BaseModel):
     title: str
     target_date: datetime
 
+class GoalUpdate(BaseModel):
+    title: Optional[str] = None
+    target_date: Optional[datetime] = None
+
 class GoalResponse(BaseModel):
     id: int
     title: str
