@@ -18,7 +18,7 @@ def publish_user_created(user_id: int, email: str, auth_provider: str = "local")
 
     Nunca propaga excecao: falha de mensageria (fila fora do ar, timeout,
     credencial invalida) nao deve derrubar o fluxo de registro que chamou
-    esta funcao. Em caso de falha, loga em nivel error com contexto —
+    esta funcao. Em caso de falha, loga em nivel error com contexto:
     nao-bloqueante, mas nao silencioso.
     """
     if not RABBITMQ_URL:

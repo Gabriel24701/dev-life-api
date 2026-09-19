@@ -1,5 +1,8 @@
 ##API
 
+# instrucoes locais para o Claude Code, nao versionadas
+CLAUDE.md
+
 venv/
 __pycache__/
 *.pyc
