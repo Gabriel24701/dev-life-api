@@ -72,6 +72,11 @@ class StudyNoteCreate(BaseModel):
     content: str
     tags: Optional[str] = None
 
+class StudyNoteUpdate(BaseModel):
+    title: Optional[str] = None
+    content: Optional[str] = None
+    tags: Optional[str] = None
+
 class StudyNoteResponse(BaseModel):
     id: int
     title: str
