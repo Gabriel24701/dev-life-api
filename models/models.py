@@ -21,6 +21,9 @@ class User(Base):
     hashed_password = Column(String, nullable=True)
     auth_provider = Column(String(10), nullable=False, server_default="local")
     google_sub = Column(String, nullable=True)
+    github_username = Column(String, unique=True, index=True, nullable=True)
+    github_access_token = Column(Text, nullable=True)
+    github_refresh_token = Column(Text, nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
