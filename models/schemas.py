@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
-from typing import Optional, Literal
+from typing import List, Optional, Literal
 
 PriorityLevel = Literal["low", "medium", "high"]
 
@@ -106,3 +106,20 @@ class GoalResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+class GitHubAuthorizeResponse(BaseModel):
+    authorize_url: str
+
+# Nunca inclui o token, so a confirmacao de que a conexao funcionou e o
+# username publico associado a ela.
+class GitHubConnectionResponse(BaseModel):
+    connected: bool
+    github_username: Optional[str] = None
+
+class GitHubContributionDay(BaseModel):
+    date: str
+    count: int
+
+class GitHubContributionsResponse(BaseModel):
+    total_contributions: int
+    days: List[GitHubContributionDay]
