@@ -30,13 +30,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from routes import tasks, habits, health, goals, study_notes
+from routes import tasks, habits, health, goals, study_notes, github
 app.include_router(tasks.router)
 app.include_router(habits.router)
 app.include_router(auth_routes.router)
 app.include_router(health.router)
 app.include_router(goals.router)
 app.include_router(study_notes.router)
+app.include_router(github.router)
 
 @app.get("/")
 def read_root():
