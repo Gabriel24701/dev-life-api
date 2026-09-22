@@ -1,3 +1,14 @@
+import os
+
+# security/auth.py agora exige SECRET_KEY no ambiente (RuntimeError se
+# ausente) e a le no import do modulo. Sem isso aqui, antes de qualquer
+# outro import, a propria coleta dos testes (via "from main import app"
+# logo abaixo) quebraria -- tanto local quanto no CI, que tambem nao seta
+# SECRET_KEY. Valor fixo e nao sensivel, so para assinatura de JWT em
+# teste; setdefault para nao sobrescrever se alguem ja exportou uma no
+# ambiente local.
+os.environ.setdefault("SECRET_KEY", "test-secret-key-not-for-production")
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
