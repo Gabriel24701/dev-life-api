@@ -93,6 +93,8 @@ def test_me_com_token_valido_retorna_usuario_correto(client):
 
     assert response.status_code == 200
     assert response.json()["email"] == "ana@example.com"
+    # github_username so aparece depois de conectar via /github/callback
+    assert response.json()["github_username"] is None
 
 
 def test_me_sem_token_retorna_401(client):
