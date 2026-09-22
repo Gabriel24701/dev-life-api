@@ -77,6 +77,10 @@ resource "azurerm_linux_web_app" "api_app" {
     "GOOGLE_CLIENT_ID"                      = var.google_client_id
     "RABBITMQ_URL"                          = var.rabbitmq_url
     "APPLICATIONINSIGHTS_CONNECTION_STRING" = azurerm_application_insights.api_insights.connection_string
+    "SECRET_KEY"                            = var.secret_key
+    "GITHUB_CLIENT_ID"                      = var.github_client_id
+    "GITHUB_CLIENT_SECRET"                  = var.github_client_secret
+    "GITHUB_REDIRECT_URI"                   = var.github_redirect_uri
   }
   tags = {
     "hidden-link: /app-insights-resource-id" = "/subscriptions/cc0a0efc-329c-4488-851b-f9633ca7479c/resourceGroups/rg-dev-life-backend/providers/microsoft.insights/components/appi-devlife-api"
