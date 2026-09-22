@@ -1,5 +1,16 @@
+import importlib
+
+import pytest
+
+import security.auth as auth_module
 from conftest import _auth_headers, _register_and_login
 from models.models import User
+
+# Valor que tests/conftest.py seta antes da collection (from main import app
+# importa security/auth.py, que exige SECRET_KEY no import do modulo).
+# Reaproveitado aqui pra devolver o modulo ao mesmo estado que o resto da
+# suite espera, apos o reload forcado do teste abaixo.
+_TEST_SECRET_KEY = "test-secret-key-not-for-production"
 
 
 # ─── POST /auth/register ────────────────────────────────────────────────────
@@ -148,3 +159,27 @@ def test_update_me_nome_vazio_retorna_422(client):
     response = client.put("/auth/me", json={"name": ""}, headers=_auth_headers(token))
 
     assert response.status_code == 422
+
+
+# ─── SECRET_KEY ausente no import do modulo ─────────────────────────────────
+def test_secret_key_ausente_no_import_levanta_runtime_error(monkeypatch):
+    """security/auth.py le SECRET_KEY no import do modulo, sem fallback:
+    sem a variavel no ambiente, o import deve falhar alto e claro em vez de
+    cair silenciosamente numa chave conhecida (o problema original que
+    motivou remover o fallback hardcoded). Usa importlib.reload pra forcar
+    o corpo do modulo a reexecutar sem SECRET_KEY.
+
+    O finally reimporta com SECRET_KEY restaurada, sempre -- o resto da
+    suite depende do modulo carregado com sucesso (tests/conftest.py seta
+    SECRET_KEY antes da collection, e funcoes como get_current_user usam a
+    SECRET_KEY do modulo ao vivo, nao uma copia)."""
+    monkeypatch.delenv("SECRET_KEY", raising=False)
+
+    try:
+        with pytest.raises(
+            RuntimeError, match="SECRET_KEY precisa estar definida para assinar tokens JWT."
+        ):
+            importlib.reload(auth_module)
+    finally:
+        monkeypatch.setenv("SECRET_KEY", _TEST_SECRET_KEY)
+        importlib.reload(auth_module)
