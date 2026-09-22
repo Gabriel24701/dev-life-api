@@ -125,6 +125,7 @@ def test_callback_fluxo_completo_salva_token_criptografado_e_username(
     monkeypatch.setenv("SECRET_KEY", SECRET_KEY)  # garante Fernet inicializavel
     token = _register_and_login(client, "dono@example.com")
     me = client.get("/auth/me", headers=_auth_headers(token)).json()
+    assert me["github_username"] is None
 
     _mock_github_http(monkeypatch, access_token="gho_plaintext_real", github_login="octocat")
     state = _make_state(user_id=me["id"])
@@ -142,6 +143,12 @@ def test_callback_fluxo_completo_salva_token_criptografado_e_username(
     # nunca em texto plano no banco
     assert user.github_access_token != "gho_plaintext_real"
     assert user.github_access_token is not None
+
+    # /auth/me tambem precisa refletir a conexao: e a unica fonte que o
+    # frontend tem pra saber, sem chamar /github/*, se ja ha uma conta
+    # conectada (ver UserResponse.github_username).
+    me_after = client.get("/auth/me", headers=_auth_headers(token)).json()
+    assert me_after["github_username"] == "octocat"
 
 
 def test_callback_com_refresh_token_tambem_criptografa_e_salva(client, monkeypatch, db):
@@ -326,3 +333,6 @@ def test_disconnect_remove_os_3_campos_localmente(client, monkeypatch, db):
     assert user.github_access_token is None
     assert user.github_refresh_token is None
     assert user.github_username is None
+
+    me_after = client.get("/auth/me", headers=_auth_headers(token)).json()
+    assert me_after["github_username"] is None
